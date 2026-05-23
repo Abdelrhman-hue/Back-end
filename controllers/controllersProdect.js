@@ -16,6 +16,7 @@ const getproductsingle = async (req, res) => {
 const addproduct = async (req, res) => {
   const newProduct = new productSchema(req.body);
   await newProduct.save();
+  console.log(newProduct);
   res.status(201).json(newProduct);
 };
 
