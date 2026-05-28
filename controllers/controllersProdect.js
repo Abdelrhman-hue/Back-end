@@ -1,7 +1,16 @@
 const productSchema = require("../module/productShcema");
 
 const getallproducts = async (req, res) => {
-  const products = await productSchema.find({});
+  const query = req.query;
+
+  const limit = query.limit || 10;
+  const page = query.page || 1;
+  const skip = (page - 1) * limit;
+
+  const products = await productSchema
+    .find({}, { __v: false })
+    .limit(limit)
+    .skip(skip);
   if (!products) return res.status(404).send("No products found");
   res.status(200).json(products);
 };
