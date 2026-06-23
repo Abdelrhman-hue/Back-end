@@ -10,7 +10,7 @@ const getallproducts = async (req, res) => {
   const products = await productSchema
     .find({}, { __v: false })
     .limit(limit)
-    .skip(skip);
+    .skip(skip).sort({_id : 1});
   if (!products) return res.status(404).send("No products found");
   res.status(200).json(products);
 };

@@ -13,9 +13,9 @@ const url = process.env.DATABASE;
 
 app.use(cors());
 app.use(express.json());
-app.all("*", (req, res, next) => {
-  res.send("Not Found");
-});
+// app.all("*", (req, res, next) => {
+//   return res.status(404).send("Not Found");
+// });
 
 mongoose.connect(url).then(() => console.log("MongoDB connected"));
 
@@ -57,6 +57,19 @@ app.get("/users", controllersUser.getallusers);
 app.get("/users/login", controllersUser.login);
 // Register user
 app.post("/users/register", controllersUser.register);
+
+// Reset password
+app.post(
+  "/users/reset-password",
+  authMiddleware,
+  controllersUser.resetPassword,
+);
+
+app.post(
+  "/users/verify-reset-code",
+  authMiddleware,
+  controllersUser.verifyResetCode,
+);
 // Update user
 app.patch(
   "/users/update/:id",

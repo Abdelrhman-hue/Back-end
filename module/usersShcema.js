@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
     enum: [roles.USER, roles.ADMIN],
     default: [roles.USER],
   },
+  resetCode: {
+    type: String,
+  },
+  resetCodeExpiry: {
+    type: Date,
+  },
 });
 
 module.exports = mongoose.model("User", userSchema);

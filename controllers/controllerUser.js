@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const generateJWT = require("../utils/generateToken");
 const httpresponser = require("../utils/httpjsend");
 const roles = require("../utils/roles");
+const sendCode = require("../utils/sendCode");
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -100,6 +101,82 @@ const register = async (req, res) => {
 
 // ------------------------------------------------------------------------------------------------------
 
+// reset password
+const resetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const user = await Users.findOne({ email: email });
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: httpresponser.FAIL, error: "User not found" });
+  }
+  // generate 6 digit reset code and hash it and set expiry and save user
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetCodeHash = await bcrypt.hash(resetCode, 10);
+  const resetCodeExpiry = Date.now() + 15 * 60 * 1000; // code valid for 15 minutes
+  user.resetCode = resetCodeHash;
+  user.resetCodeExpiry = resetCodeExpiry;
+  await user.save();
+
+  // send email with reset code
+  sendCode({ email: user.email, resetCode });
+
+
+  res.status(200).json({ status: httpresponser.SUCCESS, message: "Reset code sent" });
+};
+
+// ------------------------------------------------------------------------------------------------------
+// verify reset code 
+
+const verifyResetCode = async (req, res) => {
+  const { email, resetCode, newPassword } = req.body;
+  if (!email || !resetCode || !newPassword) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const user = await Users.findOne({ email: email });
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: httpresponser.FAIL, error: "User not found" });
+  }
+
+  const isMatch = await bcrypt.compare(resetCode, user.resetCode);
+  if (!isMatch) {
+    return res
+      .status(400)
+      .json({ status: httpresponser.FAIL, error: "Invalid reset code" });
+  }
+
+  if (Date.now() > user.resetCodeExpiry) {
+    return res
+      .status(400)
+      .json({ status: httpresponser.FAIL, error: "Reset code expired" });
+  }
+  const token = await generateJWT({
+    email: user.email,
+    fristname: user.fristname,
+    lastname: user.lastname,
+    id: user._id,
+    roles: user.roles
+  });
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.resetCode = undefined;
+  user.resetCodeExpiry = undefined;
+  user.token = token;
+  await user.save();
+
+  res.status(200).json({ status: httpresponser.SUCCESS, message: "Password reset successful" , token: user.token });
+};
+
+
+// ------------------------------------------------------------------------------------------------------
+
 // update user
 const updateuser = async (req, res) => {
   const id = +req.params.id;
@@ -123,4 +200,6 @@ module.exports = {
   register,
   updateuser,
   deleteuser,
+  resetPassword,
+  verifyResetCode,
 };
