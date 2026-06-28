@@ -8,11 +8,19 @@ const controllersUser = require("./controllers/controllerUser");
 const authMiddleware = require("./middleware/Auth");
 const rolesAuth = require("./middleware/rolesAuth");
 const roles = require("./utils/roles");
+const cookieParser = require("cookie-parser");
+const getme = require("./middleware/getMe");
 
 const url = process.env.DATABASE;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 // app.all("*", (req, res, next) => {
 //   return res.status(404).send("Not Found");
 // });
@@ -53,8 +61,11 @@ app.delete(
 // Get all users
 app.get("/users", controllersUser.getallusers);
 
+// Get a single user
+app.get("/users/me", authMiddleware, getme, controllersUser.getuser);
+
 // Login user
-app.get("/users/login", controllersUser.login);
+app.post("/users/login", controllersUser.login);
 // Register user
 app.post("/users/register", controllersUser.register);
 

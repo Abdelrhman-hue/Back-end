@@ -46,7 +46,34 @@ const login = async (req, res) => {
     id: user._id,
     roles: user.roles,
   });
-  res.status(200).json({ status: httpresponser.SUCCESS, data: { token } });
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 أيام
+  });
+
+  res.cookie("user", {
+    email: user.email,
+    fristname: user.fristname,
+    lastname: user.lastname,
+    id: user._id,
+    roles: user.roles,
+  });
+
+  res.status(200).json({
+    status: httpresponser.SUCCESS,
+    data: {
+      user: {
+        email: user.email,
+        fristname: user.fristname,
+        lastname: user.lastname,
+        id: user._id,
+        roles: user.roles,
+      },
+    },
+  });
 };
 
 // ------------------------------------------------------------------------------------------------------
@@ -90,6 +117,22 @@ const register = async (req, res) => {
     newUser.token = token;
 
     await newUser.save();
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 أيام
+    });
+
+    res.cookie("user", {
+      email: newUser.email,
+      fristname: newUser.fristname,
+      lastname: newUser.lastname,
+      id: newUser._id,
+      roles: newUser.roles,
+    });
+
     res.status(201).json({ status: httpresponser.SUCCESS, data: newUser });
   } catch (err) {
     console.error(err);
@@ -126,12 +169,13 @@ const resetPassword = async (req, res) => {
   // send email with reset code
   sendCode({ email: user.email, resetCode });
 
-
-  res.status(200).json({ status: httpresponser.SUCCESS, message: "Reset code sent" });
+  res
+    .status(200)
+    .json({ status: httpresponser.SUCCESS, message: "Reset code sent" });
 };
 
 // ------------------------------------------------------------------------------------------------------
-// verify reset code 
+// verify reset code
 
 const verifyResetCode = async (req, res) => {
   const { email, resetCode, newPassword } = req.body;
@@ -163,17 +207,36 @@ const verifyResetCode = async (req, res) => {
     fristname: user.fristname,
     lastname: user.lastname,
     id: user._id,
-    roles: user.roles
+    roles: user.roles,
   });
   user.password = await bcrypt.hash(newPassword, 10);
   user.resetCode = undefined;
   user.resetCodeExpiry = undefined;
   user.token = token;
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 أيام
+  });
+
   await user.save();
 
-  res.status(200).json({ status: httpresponser.SUCCESS, message: "Password reset successful" , token: user.token });
+  res.status(200).json({
+    status: httpresponser.SUCCESS,
+    message: "Password reset successful",
+  });
 };
 
+// ------------------------------------------------------------------------------------------------------
+
+const getuser = async (req, res) => {
+  const user = await Users.findById(req.user.id).select("-password");
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  res.status(200).json({ status: httpresponser.SUCCESS, data: user });
+};
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -202,4 +265,5 @@ module.exports = {
   deleteuser,
   resetPassword,
   verifyResetCode,
+  getuser,
 };
