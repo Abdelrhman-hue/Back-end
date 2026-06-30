@@ -80,10 +80,11 @@ const login = async (req, res) => {
 
 // register user
 const register = async (req, res) => {
+  console.log(req.body);
   try {
-    const { firstname, lastname, email, password, roles } = req.body;
+    const { firstname, lastname, email, password } = req.body;
 
-    if (!firstname || !lastname || !email || !password || !roles) {
+    if (!firstname || !lastname || !email || !password) {
       return res
         .status(400)
         .json({ status: httpresponser.FAIL, error: "All fields are required" });
@@ -103,20 +104,27 @@ const register = async (req, res) => {
       fristname: firstname,
       lastname,
       email: email.toLowerCase(),
-      password: hashedPassword,
-      roles: roles || [roles.USER],
+      password: hashedPassword
     });
 
     const token = await generateJWT({
       email: newUser.email,
       fristname: newUser.fristname,
       lastname: newUser.lastname,
-      id: newUser._id,
-      roles: newUser.roles,
+      id: newUser._id
     });
     newUser.token = token;
 
+    // generate 6 digit reset code and hash it and set expiry and save user
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetCodeHash = await bcrypt.hash(resetCode, 10);
+    const resetCodeExpiry = Date.now() + 15 * 60 * 1000; // code valid for 15 minutes
+    newUser.resetCode = resetCodeHash;
+    newUser.resetCodeExpiry = resetCodeExpiry;
     await newUser.save();
+
+    // send email with reset code
+    sendCode({ email: newUser.email, resetCode });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -130,7 +138,6 @@ const register = async (req, res) => {
       fristname: newUser.fristname,
       lastname: newUser.lastname,
       id: newUser._id,
-      roles: newUser.roles,
     });
 
     res.status(201).json({ status: httpresponser.SUCCESS, data: newUser });
