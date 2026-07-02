@@ -104,14 +104,14 @@ const register = async (req, res) => {
       fristname: firstname,
       lastname,
       email: email.toLowerCase(),
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     const token = await generateJWT({
       email: newUser.email,
       fristname: newUser.fristname,
       lastname: newUser.lastname,
-      id: newUser._id
+      id: newUser._id,
     });
     newUser.token = token;
 
@@ -237,12 +237,28 @@ const verifyResetCode = async (req, res) => {
 };
 
 // ------------------------------------------------------------------------------------------------------
-
+// Get user
 const getuser = async (req, res) => {
   const user = await Users.findById(req.user.id).select("-password");
   if (!user) return res.status(404).json({ error: "User not found" });
 
   res.status(200).json({ status: httpresponser.SUCCESS, data: user });
+};
+
+// ------------------------------------------------------------------------------------------------------
+// logout user
+
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
+  });
 };
 
 // ------------------------------------------------------------------------------------------------------
@@ -273,4 +289,5 @@ module.exports = {
   resetPassword,
   verifyResetCode,
   getuser,
+  logout,
 };

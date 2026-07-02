@@ -64,6 +64,9 @@ app.get("/users", controllersUser.getallusers);
 // Get a single user
 app.get("/users/me", authMiddleware, getme, controllersUser.getuser);
 
+// Logout user
+app.post("/users/logout", controllersUser.logout);
+
 // Login user
 app.post("/users/login", controllersUser.login);
 // Register user
