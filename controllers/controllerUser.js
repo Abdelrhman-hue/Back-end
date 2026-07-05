@@ -186,6 +186,7 @@ const resetPassword = async (req, res) => {
 
 const verifyResetCode = async (req, res) => {
   const { email, resetCode, newPassword } = req.body;
+  console.log(req.body);
   if (!email || !resetCode || !newPassword) {
     return res.status(400).json({ error: "All fields are required" });
   }

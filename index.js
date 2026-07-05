@@ -75,13 +75,11 @@ app.post("/users/register", controllersUser.register);
 // Reset password
 app.post(
   "/users/reset-password",
-  authMiddleware,
   controllersUser.resetPassword,
 );
 
 app.post(
   "/users/verify-reset-code",
-  authMiddleware,
   controllersUser.verifyResetCode,
 );
 // Update user
