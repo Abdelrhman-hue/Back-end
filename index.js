@@ -10,6 +10,7 @@ const rolesAuth = require("./middleware/rolesAuth");
 const roles = require("./utils/roles");
 const cookieParser = require("cookie-parser");
 const getme = require("./middleware/getMe");
+const controllerOrder = require("./controllers/controllerOrder");
 
 const url = process.env.DATABASE;
 
@@ -96,6 +97,11 @@ app.delete(
   rolesAuth(roles.ADMIN),
   controllersUser.deleteuser,
 );
+
+
+// Order routes
+app.post("/orders", authMiddleware, controllerOrder.createOrder);
+app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`listen in port ${process.env.PORT || 5000}`);
