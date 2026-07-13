@@ -11,6 +11,7 @@ const roles = require("./utils/roles");
 const cookieParser = require("cookie-parser");
 const getme = require("./middleware/getMe");
 const controllerOrder = require("./controllers/controllerOrder");
+const paymentController = require("../controllers/controllerPayment");
 
 const url = process.env.DATABASE;
 
@@ -74,15 +75,9 @@ app.post("/users/login", controllersUser.login);
 app.post("/users/register", controllersUser.register);
 
 // Reset password
-app.post(
-  "/users/reset-password",
-  controllersUser.resetPassword,
-);
+app.post("/users/reset-password", controllersUser.resetPassword);
 
-app.post(
-  "/users/verify-reset-code",
-  controllersUser.verifyResetCode,
-);
+app.post("/users/verify-reset-code", controllersUser.verifyResetCode);
 // Update user
 app.patch(
   "/users/update/:id",
@@ -98,10 +93,14 @@ app.delete(
   controllersUser.deleteuser,
 );
 
-
 // Order routes
 app.post("/orders", authMiddleware, controllerOrder.createOrder);
 app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
+
+// Payment routes
+app.post("/payment/checkout", authMiddleware, paymentController.createCheckoutSession);
+app.post("/payment/webhook", paymentController.webhook);
+app.get("/payment/verify/:id", authMiddleware, paymentController.verifyPayment);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`listen in port ${process.env.PORT || 5000}`);
