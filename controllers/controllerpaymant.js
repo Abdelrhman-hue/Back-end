@@ -2,13 +2,13 @@ const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const Orders = require("../models/Order");
+const Order = require("../module/orderShcema");
 
 const createCheckoutSession = async (req, res) => {
   try {
     const { orderId } = req.body;
 
-    const order = await Orders.findById(orderId).populate("items.product");
+    const order = await Order.findById(orderId).populate("items.product");
 
     if (!order) {
       return res.status(404).json({
@@ -36,7 +36,7 @@ const createCheckoutSession = async (req, res) => {
 
       mode: "payment",
 
-      success_url: "http://localhost:3000/payment/success",
+      success_url: "http://localhost:3000/",
 
       cancel_url: "http://localhost:3000/payment/cancel",
     });
@@ -63,9 +63,10 @@ const webhook = async (req, res) => {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    const order = await Orders.findOne({
+    const order = await Order.findOne({
       stripeSessionId: session.id,
     });
+    console.log("order", order);
 
     if (order) {
       order.paymentStatus = "paid";
@@ -84,7 +85,7 @@ const webhook = async (req, res) => {
 const verifyPayment = async (req, res) => {
   const { id } = req.params;
 
-  const order = await Orders.findById(id);
+  const order = await Order.findById(id);
 
   if (!order) {
     return res.status(404).json({
@@ -92,6 +93,8 @@ const verifyPayment = async (req, res) => {
     });
   }
 
+  if (order.paymentStatus === "paid") {
+  }
   res.status(200).json({
     status: "success",
     paymentStatus: order.paymentStatus,

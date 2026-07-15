@@ -11,7 +11,7 @@ const roles = require("./utils/roles");
 const cookieParser = require("cookie-parser");
 const getme = require("./middleware/getMe");
 const controllerOrder = require("./controllers/controllerOrder");
-const paymentController = require("../controllers/controllerPayment");
+const paymentController = require("./controllers/controllerpaymant");
 
 const url = process.env.DATABASE;
 

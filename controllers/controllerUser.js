@@ -82,9 +82,9 @@ const login = async (req, res) => {
 const register = async (req, res) => {
   console.log(req.body);
   try {
-    const { firstname, lastname, email, password } = req.body;
+    const { firstname, lastname, email, password , phoneNumber, dateOfBirth } = req.body;
 
-    if (!firstname || !lastname || !email || !password) {
+    if (!firstname || !lastname || !email || !password || !phoneNumber || !dateOfBirth) {
       return res
         .status(400)
         .json({ status: httpresponser.FAIL, error: "All fields are required" });
@@ -105,12 +105,16 @@ const register = async (req, res) => {
       lastname,
       email: email.toLowerCase(),
       password: hashedPassword,
+      phoneNumber,
+      dateOfBirth,
     });
 
     const token = await generateJWT({
       email: newUser.email,
       fristname: newUser.fristname,
       lastname: newUser.lastname,
+      phoneNumber: newUser.phoneNumber,
+      dateOfBirth: newUser.dateOfBirth,
       id: newUser._id,
     });
     newUser.token = token;
