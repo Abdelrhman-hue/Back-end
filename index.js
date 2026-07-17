@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const getme = require("./middleware/getMe");
 const controllerOrder = require("./controllers/controllerOrder");
 const paymentController = require("./controllers/controllerpaymant");
+const cartController = require("./controllers/cartcontroller");
 
 const url = process.env.DATABASE;
 
@@ -92,6 +93,10 @@ app.delete(
   rolesAuth(roles.ADMIN),
   controllersUser.deleteuser,
 );
+
+// cart routes
+app.post("/cart", authMiddleware, cartController.addToCart);
+app.get("/Mycart", authMiddleware, cartController.getCart);
 
 // Order routes
 app.post("/orders", authMiddleware, controllerOrder.createOrder);

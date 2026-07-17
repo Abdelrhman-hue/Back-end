@@ -38,7 +38,7 @@ const createCheckoutSession = async (req, res) => {
 
       success_url: "http://localhost:3000/",
 
-      cancel_url: "http://localhost:3000/payment/cancel",
+      cancel_url: "http://localhost:3000/cart/payment",
     });
 
     order.stripeSessionId = session.id;
