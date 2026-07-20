@@ -1,20 +1,110 @@
 const productSchema = require("../module/productShcema");
 
 const getallproducts = async (req, res) => {
-  const query = req.query;
+  try {
+    const {
+      q,
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      rating,
+      inStock,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-  const limit = query.limit || 10;
-  const page = query.page || 1;
-  const skip = (page - 1) * limit;
+    const filter = {};
 
-  const products = await productSchema
-    .find({}, { __v: false })
-    .limit(limit)
-    .skip(skip).sort({_id : 1});
-  if (!products) return res.status(404).send("No products found");
-  res.status(200).json(products);
+    // Search
+    if (q) {
+      filter.$or = [
+        {
+          title: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+        {
+          description: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+        {
+          category: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+        {
+          brand: {
+            $regex: q,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
+    // Categories
+    if (category) {
+      filter.category = {
+        $in: category.split(","),
+      };
+    }
+
+    // Brands
+    if (brand) {
+      filter.brand = {
+        $in: brand.split(","),
+      };
+    }
+
+    // Price
+    filter.price = {};
+
+    if (minPrice) filter.price.$gte = Number(minPrice);
+
+    if (maxPrice) filter.price.$lte = Number(maxPrice);
+
+    if (Object.keys(filter.price).length === 0) {
+      delete filter.price;
+    }
+
+    // Rating
+    if (rating) {
+      filter.rating = {
+        $gte: Number(rating),
+      };
+    }
+
+    // Stock
+    if (inStock === "true") {
+      filter.stock = {
+        $gt: 0,
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const products = await productSchema
+      .find(filter)
+      .skip(skip)
+      .limit(Number(limit));
+
+    const count = await productSchema.countDocuments(filter);
+
+    res.json({
+      products,
+      count,
+      totalPages: Math.ceil(count / limit),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
 };
-
 const getproductsingle = async (req, res) => {
   const id = +req.params.id;
   const product = await productSchema.findOne({ id: id });
@@ -28,6 +118,49 @@ const addproduct = async (req, res) => {
   console.log(newProduct);
   res.status(201).json(newProduct);
 };
+
+// const getSearchProducts = async (req, res) => {
+//   try {
+//     const { q } = req.query;
+//     let filter = {};
+//     if (q) {
+//       filter = {
+//         $or: [
+//           {
+//             title: {
+//               $regex: q,
+//               $options: "i",
+//             },
+//           },
+//           {
+//             description: {
+//               $regex: q,
+//               $options: "i",
+//             },
+//           },
+//           {
+//             category: {
+//               $regex: q,
+//               $options: "i",
+//             },
+//           },
+//         ],
+//       };
+//     }
+//     console.log(filter);
+//     const products = await productSchema.find(filter);
+//     const count = await productSchema.countDocuments(filter);
+//     console.log(count, products);
+//     res.status(200).json({
+//       count,
+//       products,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       error: error.message,
+//     });
+//   }
+// };
 
 const updateproduct = async (req, res) => {
   const id = +req.params.id;
@@ -51,4 +184,5 @@ module.exports = {
   addproduct,
   updateproduct,
   deleteproduct,
+  // getSearchProducts,
 };

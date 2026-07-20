@@ -4,6 +4,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const Order = require("../module/orderShcema");
 
+const { clearCart } = require("../controllers/cartcontroller");
+
 const createCheckoutSession = async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -36,9 +38,9 @@ const createCheckoutSession = async (req, res) => {
 
       mode: "payment",
 
-      success_url: "http://localhost:3000/",
+      success_url: "http://localhost:3000/cart/review/success",
 
-      cancel_url: "http://localhost:3000/cart/payment",
+      cancel_url: "http://localhost:3000/cart/review/cancel",
     });
 
     order.stripeSessionId = session.id;
@@ -72,8 +74,11 @@ const webhook = async (req, res) => {
       order.paymentStatus = "paid";
       order.isPaid = true;
       order.paidAt = new Date();
+      order.status = "Shipped";
 
       await order.save();
+
+      await clearCart(order.user);
     }
   }
 

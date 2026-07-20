@@ -34,7 +34,7 @@ const addToCart = async (req, res) => {
 
     // هل المنتج موجود بالفعل؟
     const existingProduct = cart.items.find(
-      (item) => item.product.toString() === product
+      (item) => item.product.toString() === product,
     );
 
     if (existingProduct) {
@@ -59,13 +59,11 @@ const addToCart = async (req, res) => {
   }
 };
 
-
 const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({
       user: req.user.id,
-    })
-      .populate("items.product", "title price image category description");
+    }).populate("items.product", "title price image category description");
 
     if (!cart) {
       return res.status(200).json({
@@ -98,7 +96,21 @@ const getCart = async (req, res) => {
   }
 };
 
+const clearCart = async (userId) => {
+  await Cart.findOneAndUpdate(
+    { user: userId },
+    {
+      items: [],
+      totalPrice: 0,
+    },
+    {
+      new: true,
+    },
+  );
+};
+
 module.exports = {
   addToCart,
   getCart,
+  clearCart,
 };

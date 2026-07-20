@@ -44,6 +44,9 @@ app.post(
   controllersProdect.addproduct,
 );
 
+// search product
+// app.get("/products/search",controllersProdect.getSearchProducts)
+
 // update a product
 app.patch(
   "/products/update/:id",
