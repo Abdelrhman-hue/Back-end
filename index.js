@@ -106,18 +106,10 @@ app.post("/orders", authMiddleware, controllerOrder.createOrder);
 app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
 
 // Payment routes
-app.post(
-  "/payment/checkout",
-  authMiddleware,
-  paymentController.createCheckoutSession,
-);
+app.post("/payment/checkout", authMiddleware, paymentController.createCheckoutSession);
 app.post("/payment/webhook", paymentController.webhook);
 app.get("/payment/verify/:id", authMiddleware, paymentController.verifyPayment);
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(process.env.PORT || 5000, () => {
-    console.log("Server running");
-  });
-}
-
-module.exports = app;
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`listen in port ${process.env.PORT || 5000}`);
+});
