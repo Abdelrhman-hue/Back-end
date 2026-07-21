@@ -1,118 +1,550 @@
-# E-commerce Back-end
+# 🛒 E-Commerce Backend API
 
-A simple E-commerce backend built with Node.js and Express, using MongoDB for data storage. It exposes REST API endpoints for user management (register, login, reset password, roles) and product management. Authentication is JWT-based and stored in cookies.
+A RESTful E-Commerce Backend built with **Node.js**, **Express.js**, and **MongoDB**.  
+The API provides authentication, product management, shopping cart, orders, and Stripe payment integration.
 
-## Stack
-- Language: JavaScript (Node.js)
-- Framework: Express
-- Database: MongoDB (Mongoose)
-- Notable libraries: bcrypt (password hashing), jsonwebtoken (JWT), cookie-parser, cors, nodemailer
+---
 
-## Project structure
+## 🚀 Features
+
+- 🔐 JWT Authentication
+- 🍪 Cookie-based Authentication
+- 👤 User Registration & Login
+- 🔑 Password Reset via Email (Nodemailer)
+- 🛍️ Product CRUD Operations
+- 🛒 Shopping Cart
+- 📦 Order Management
+- 💳 Stripe Checkout Integration
+- 👮 Role-Based Authorization (Admin/User)
+- ✅ Input Validation
+- 🌐 RESTful API
+- ☁️ MongoDB Atlas Database
+
+---
+
+## 🛠️ Tech Stack
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT (jsonwebtoken)
+- bcrypt
+- Stripe
+- Nodemailer
+- Cookie Parser
+- Express Validator
+- CORS
+
+---
+
+## 📂 Project Structure
+
 ```
-index.js                 # App entry: express setup, DB connection, route registration
-controllers/             # Request handlers / business logic
-  controllerUser.js
-  controllersProdect.js
-middleware/              # Middlewares: authentication, get current user, role checks
-  Auth.js
-  getMe.js
-  rolesAuth.js
-module/                  # Mongoose schemas
-  usersShcema.js
-  productShcema.js
-routes/                  # Route definitions (routes.js currently present)
-utils/                   # Helper utilities: token generation, email/code sending, roles, http responses
-  generateToken.js
-  sendCode.js
-  httpjsend.js
-  roles.js
-package.json
-README.md
+.
+├── controllers/
+├── middleware/
+├── models/
+├── utils/
+├── index.js
+├── package.json
+└── .env
 ```
 
-## How it works (brief)
-- index.js initializes Express, applies middlewares (JSON parsing, cookie-parser, CORS), connects to MongoDB (via env var), and registers user/product routes which call controller functions.
-- Auth middleware checks the JWT token from cookies (cookie name: `token`) and enforces protected routes. Role-based checks (e.g., ADMIN) are enforced via rolesAuth middleware.
-- Mongoose schemas for User and Product live in the `module/` folder.
+---
 
-## Run locally
-1. Clone and enter the project:
-   git clone https://github.com/Abdelrhman-hue/Back-end.git
-   cd Back-end
+## ⚙️ Installation
 
-2. Install dependencies:
-   npm install
+Clone the repository
 
-3. Create a `.env` file in the project root with at least:
-   DATABASE=<your-mongodb-connection-string>
-   PORT=5000
-   JWT_SECRET=<your-jwt-secret>
-   EMAIL_USER=<smtp-email>
-   EMAIL_PASS=<smtp-password-or-app-password>
+```bash
+git clone https://github.com/your-username/your-repository.git
+```
 
-4. Start the server:
-   node index.js
-   or
-   npm start
+Move into the project directory
 
-The server listens on process.env.PORT (default 5000 if not set).
+```bash
+cd your-repository
+```
 
-## Environment / Notes
-- MongoDB connection string is required (DATABASE).
-- JWT secret is required for signing tokens.
-- SMTP credentials are required for password reset / email sending (utils/sendCode.js).
-- Passwords are hashed with bcrypt before storage.
-- Tokens are set in cookies with name `token`.
+Install dependencies
 
-## API overview (summary)
-Products (controllersProdect):
-- GET /products
-  - Retrieve products (supports query params like page, limit)
-- GET /products/:id
-  - Retrieve a single product
-- POST /products/add
-  - Add a new product (protected — ADMIN)
-- PATCH /products/update/:id
-  - Update a product (protected — ADMIN)
-- DELETE /products/delete/:id
-  - Delete a product (protected — ADMIN)
+```bash
+npm install
+```
 
-Users (controllerUser):
-- GET /users
-  - Get all users (protected)
-- GET /users/me
-  - Get current user (uses getMe middleware)
-- GET /users/:id
-  - Get a user by id
-- POST /users/login
-  - Login user — sets JWT cookie `token`
-- POST /users/register
-  - Register a new user (password hashed)
-- POST /users/reset-password
-  - Start password reset (generate & email code)
-- POST /users/verify-reset-code
-  - Verify reset code and set a new password
-- PATCH /users/update/:id
-  - Update a user
-- DELETE /users/delete/:id
-  - Delete a user
+Create a `.env` file
 
-## Quick examples (curl)
-- Register:
-  curl -X POST http://localhost:5000/users/register \
-    -H "Content-Type: application/json" \
-    -d '{"email":"a@b.com","password":"pass","firstname":"Ali","lastname":"A"}'
+```env
+DATABASE=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
 
-- Login (saves cookie to cookies.txt):
-  curl -X POST http://localhost:5000/users/login \
-    -H "Content-Type: application/json" \
-    -d '{"email":"a@b.com","password":"pass"}' -c cookies.txt
+EMAIL=your_email
+EMAIL_PASSWORD=your_email_password
 
-- Get products:
-  curl http://localhost:5000/products
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+```
 
-## Next steps I can help with
-- Add a `.env.example` file listing required environment variables.
-- Create a Postman collection or OpenAPI spec for the endpoints.
-- Commit this README.md directly to the repository if you want me to.
+Run the server
+
+```bash
+npm start
+```
+
+or
+
+```bash
+npm run dev
+```
+
+---
+
+# API Endpoints
+
+## Products
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/products` | Get all products |
+| GET | `/products/:id` | Get single product |
+| POST | `/products/add` | Add product (Admin) |
+| PATCH | `/products/update/:id` | Update product (Admin) |
+| DELETE | `/products/delete/:id` | Delete product (Admin) |
+
+---
+
+## Users
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/users` | Get all users |
+| GET | `/users/me` | Get current user |
+| POST | `/users/register` | Register |
+| POST | `/users/login` | Login |
+| POST | `/users/logout` | Logout |
+| POST | `/users/reset-password` | Send reset code |
+| POST | `/users/verify-reset-code` | Verify reset code |
+| PATCH | `/users/update/:id` | Update user (Admin) |
+| DELETE | `/users/delete/:id` | Delete user (Admin) |
+
+---
+
+## Cart
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/cart` | Add product to cart |
+| GET | `/Mycart` | Get current user's cart |
+
+---
+
+## Orders
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/orders` | Create order |
+| GET | `/orders/me` | Get my orders |
+
+---
+
+## Payments
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/payment/checkout` | Create Stripe Checkout Session |
+| POST | `/payment/webhook` | Stripe Webhook |
+| GET | `/payment/verify/:id` | Verify Payment |
+
+---
+
+## 🔒 Authentication
+
+Protected routes require a valid JWT stored in an HTTP-only Cookie.
+
+Authentication middleware:
+
+- JWT Verification
+- Role Authorization
+- Get Current User
+
+---
+
+## 👮 Authorization
+
+Admin-only routes include:
+
+- Add Product
+- Update Product
+- Delete Product
+- Update User
+- Delete User
+
+---
+
+## 🌍 Environment Variables
+
+```env
+DATABASE=
+JWT_SECRET=
+
+EMAIL=
+EMAIL_PASSWORD=
+
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+---
+
+## 📌 Future Improvements
+
+- Product Search
+- Product Reviews
+- Wishlist
+- Coupons & Discounts
+- Pagination & Filtering
+- Image Upload
+- Order Tracking
+
+---
+
+## 👨‍💻 Author
+
+**Abdelrhman Safwat**
+
+GitHub: https://github.com/Abdelrhman-hue   
+
+# 📖 API Documentation
+
+## Base URL
+
+```
+https://your-backend-url.up.railway.app
+```
+
+---
+
+# Authentication
+
+## Register
+
+### POST
+
+```
+/users/register
+```
+
+### Body
+
+```json
+{
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john@example.com",
+  "password": "123456"
+}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "User registered successfully"
+}
+```
+
+---
+
+## Login
+
+### POST
+
+```
+/users/login
+```
+
+### Body
+
+```json
+{
+  "email": "john@example.com",
+  "password": "123456"
+}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "token": "JWT_TOKEN"
+}
+```
+
+---
+
+# Products
+
+## Get All Products
+
+### GET
+
+```
+/products
+```
+
+---
+
+## Get Single Product
+
+### GET
+
+```
+/products/:id
+```
+
+---
+
+## Add Product (Admin)
+
+### POST
+
+```
+/products/add
+```
+
+Headers
+
+```
+Cookie: token=JWT
+```
+
+Body
+
+```json
+{
+  "title": "iPhone 15",
+  "description": "Apple Phone",
+  "price": 1200,
+  "category": "phones"
+}
+```
+
+---
+
+## Update Product
+
+### PATCH
+
+```
+/products/update/:id
+```
+
+---
+
+## Delete Product
+
+### DELETE
+
+```
+/products/delete/:id
+```
+
+---
+
+# Cart
+
+## Add To Cart
+
+### POST
+
+```
+/cart
+```
+
+Body
+
+```json
+{
+  "productId": "...",
+  "quantity": 2
+}
+```
+
+---
+
+## Get My Cart
+
+### GET
+
+```
+/Mycart
+```
+
+---
+
+# Orders
+
+## Create Order
+
+### POST
+
+```
+/orders
+```
+
+---
+
+## Get My Orders
+
+### GET
+
+```
+/orders/me
+```
+
+---
+
+# Payments
+
+## Create Checkout Session
+
+### POST
+
+```
+/payment/checkout
+```
+
+---
+
+## Stripe Webhook
+
+### POST
+
+```
+/payment/webhook
+```
+
+---
+
+## Verify Payment
+
+### GET
+
+```
+/payment/verify/:id
+```
+# 🏗️ System Architecture
+
+```text
+                         +----------------------+
+                         |      Frontend        |
+                         |   Next.js / React    |
+                         +----------+-----------+
+                                    |
+                              HTTP Requests
+                                    |
+                                    v
+                     +------------------------------+
+                     |      Express.js Backend       |
+                     |         RESTful API           |
+                     +------------------------------+
+                       |          |          |
+                       |          |          |
+               JWT Auth|          |Stripe    |Email
+                       |          |          |
+                       v          v          v
+                +-----------+ +--------+ +-------------+
+                | MongoDB   | | Stripe | | Nodemailer  |
+                |  Atlas    | | API    | | Gmail SMTP  |
+                +-----------+ +--------+ +-------------+
+```
+
+---
+
+## Backend Flow
+
+```text
+Client
+   │
+   ▼
+Express Server
+   │
+   ├──────── Authentication
+   │         │
+   │         ▼
+   │     JWT Middleware
+   │
+   ├──────── Product Controller
+   │
+   ├──────── User Controller
+   │
+   ├──────── Cart Controller
+   │
+   ├──────── Order Controller
+   │
+   └──────── Payment Controller
+                  │
+                  ▼
+             Stripe Checkout
+```
+
+---
+
+## Authentication Flow
+
+```text
+Register
+   │
+   ▼
+Hash Password (bcrypt)
+   │
+   ▼
+MongoDB
+
+──────────────
+
+Login
+   │
+   ▼
+Compare Password
+   │
+   ▼
+Generate JWT
+   │
+   ▼
+HTTP Only Cookie
+   │
+   ▼
+Protected Routes
+```
+
+---
+
+## Payment Flow
+
+```text
+User
+ │
+ ▼
+Checkout
+ │
+ ▼
+Stripe Checkout Session
+ │
+ ▼
+Stripe Payment
+ │
+ ▼
+Webhook
+ │
+ ▼
+Verify Payment
+ │
+ ▼
+Create Order
+```
+
+---
