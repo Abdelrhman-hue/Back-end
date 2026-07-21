@@ -18,7 +18,10 @@ const url = process.env.DATABASE;
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://e-commerce-khgx545qx-abdelrhman-hues-projects.vercel.app",
+    ],
     credentials: true,
   }),
 );
@@ -106,7 +109,11 @@ app.post("/orders", authMiddleware, controllerOrder.createOrder);
 app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
 
 // Payment routes
-app.post("/payment/checkout", authMiddleware, paymentController.createCheckoutSession);
+app.post(
+  "/payment/checkout",
+  authMiddleware,
+  paymentController.createCheckoutSession,
+);
 app.post("/payment/webhook", paymentController.webhook);
 app.get("/payment/verify/:id", authMiddleware, paymentController.verifyPayment);
 
