@@ -63,7 +63,11 @@ const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({
       user: req.user.id,
-    }).populate("items.product", "title price image category description");
+    }).populate(
+      "items.product",
+      "title price thumbnail images category description",
+    );
+    console.log(cart.items[0].product);
 
     if (!cart) {
       return res.status(200).json({
