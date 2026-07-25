@@ -20,10 +20,10 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://e-commerce-khgx545qx-abdelrhman-hues-projects.vercel.app",
+      "https://shop-bog.vercel.app",
     ],
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
