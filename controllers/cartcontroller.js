@@ -67,7 +67,6 @@ const getCart = async (req, res) => {
       "items.product",
       "title price thumbnail images category description",
     );
-    console.log(cart.items[0].product);
 
     if (!cart) {
       return res.status(200).json({
@@ -100,6 +99,49 @@ const getCart = async (req, res) => {
   }
 };
 
+const deleteCartItem = async (req, res) => {
+  const userId = req.user.id;
+  const { productId } = req.params;
+
+  try {
+    const cart = await Cart.findOne({ user: userId });
+
+    if (!cart) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Cart not found",
+      });
+    }
+
+    await Cart.updateOne(
+      { user: userId },
+      {
+        $pull: {
+          items: {
+            product: productId,
+          },
+        },
+      },
+    );
+
+    const updatedCart = await Cart.findOne({ user: userId });
+
+    if (updatedCart.items.length === 0) {
+      await Cart.deleteOne({ user: userId });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Product removed from cart successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 const clearCart = async (userId) => {
   await Cart.findOneAndUpdate(
     { user: userId },
@@ -117,4 +159,5 @@ module.exports = {
   addToCart,
   getCart,
   clearCart,
+  deleteCartItem,
 };

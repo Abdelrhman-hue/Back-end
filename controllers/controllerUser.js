@@ -268,12 +268,48 @@ const logout = (req, res) => {
 // ------------------------------------------------------------------------------------------------------
 
 // update user
-const updateuser = async (req, res) => {
-  const id = +req.params.id;
-  const user = await Users.findOne({ id: id });
-  if (!user) return res.status(404).json({ error: "User not found" });
-  await Users.updateOne({ id: id }, { $set: { ...req.body } });
-  res.status(200).json({ message: "User updated successfully" });
+const updateUser = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    if (!id) {
+      return res.status(400).json({
+        error: "Invalid user id",
+      });
+    }
+
+    const { firstname, lastname, email, phone } = req.body;
+
+    const user = await Users.findOneAndUpdate(
+      { id },
+      {
+        $set: {
+          firstname,
+          lastname,
+          email,
+          phone,
+        },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
 };
 // delete user
 const deleteuser = async (req, res) => {
@@ -288,7 +324,7 @@ module.exports = {
   getallusers,
   login,
   register,
-  updateuser,
+  updateUser,
   deleteuser,
   resetPassword,
   verifyResetCode,

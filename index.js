@@ -18,12 +18,9 @@ const url = process.env.DATABASE;
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://shop-bog.vercel.app",
-    ],
+    origin: ["http://localhost:3000", "https://shop-bog.vercel.app"],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -68,7 +65,7 @@ app.delete(
 
 // User routes
 // Get all users
-app.get("/users", controllersUser.getallusers);
+app.get("/users", authMiddleware, controllersUser.getallusers);
 
 // Get a single user
 app.get("/users/me", authMiddleware, getme, controllersUser.getuser);
@@ -87,10 +84,9 @@ app.post("/users/reset-password", controllersUser.resetPassword);
 app.post("/users/verify-reset-code", controllersUser.verifyResetCode);
 // Update user
 app.patch(
-  "/users/update/:id",
+  "/users/update",
   authMiddleware,
-  rolesAuth(roles.ADMIN),
-  controllersUser.updateuser,
+  controllersUser.updateUser,
 );
 // Delete user
 app.delete(
@@ -102,6 +98,7 @@ app.delete(
 
 // cart routes
 app.post("/cart", authMiddleware, cartController.addToCart);
+app.delete("/cart/:productId", authMiddleware, cartController.deleteCartItem);
 app.get("/Mycart", authMiddleware, cartController.getCart);
 
 // Order routes
