@@ -28,6 +28,23 @@ app.use(cookieParser());
 //   return res.status(404).send("Not Found");
 // });
 
+let isConnected = false;
+async function connectDB() {
+  if (isConnected) return;
+  await mongoose.connect(url);
+  isConnected = true;
+  console.log("MongoDB connected");
+}
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+});
+
 mongoose.connect(url).then(() => console.log("MongoDB connected"));
 
 // Get all products
@@ -83,11 +100,7 @@ app.post("/users/reset-password", controllersUser.resetPassword);
 
 app.post("/users/verify-reset-code", controllersUser.verifyResetCode);
 // Update user
-app.patch(
-  "/users/update",
-  authMiddleware,
-  controllersUser.updateUser,
-);
+app.patch("/users/update", authMiddleware, controllersUser.updateUser);
 // Delete user
 app.delete(
   "/users/delete/:id",
@@ -114,6 +127,10 @@ app.post(
 app.post("/payment/webhook", paymentController.webhook);
 app.get("/payment/verify/:id", authMiddleware, paymentController.verifyPayment);
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`listen in port ${process.env.PORT || 5000}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(process.env.PORT || 5000, () => {
+    console.log(`listen in port ${process.env.PORT || 5000}`);
+  });
+}
+
+module.exports = app;
