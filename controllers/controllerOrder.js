@@ -2,8 +2,6 @@ const Order = require("../module/orderShcema");
 const Product = require("../module/productShcema");
 const Cart = require("../module/cartShcema");
 
-
-
 const createOrder = async (req, res) => {
   try {
     const cart = await Cart.findOne({
@@ -72,7 +70,16 @@ const getMyOrders = async (req, res) => {
   }
 };
 
+const allOrders = async (req, res) => {
+  const orders = await Order.find();
+  return res.status(200).json({
+    status: "success",
+    data: orders,
+  });
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
+  allOrders,
 };

@@ -13,6 +13,7 @@ const getme = require("./middleware/getMe");
 const controllerOrder = require("./controllers/controllerOrder");
 const paymentController = require("./controllers/controllerpaymant");
 const cartController = require("./controllers/cartcontroller");
+const dashboardCount = require("./controllers/DashboardController");
 
 const url = process.env.DATABASE;
 
@@ -46,6 +47,14 @@ app.use(async (req, res, next) => {
 });
 
 mongoose.connect(url).then(() => console.log("MongoDB connected"));
+
+// dashbord routs
+app.get(
+  "/dashboard",
+  authMiddleware,
+  rolesAuth(roles.ADMIN),
+  dashboardCount.dashboardCount,
+);
 
 // Get all products
 app.get("/products", controllersProdect.getallproducts);
@@ -82,7 +91,12 @@ app.delete(
 
 // User routes
 // Get all users
-app.get("/users", authMiddleware, controllersUser.getallusers);
+app.get(
+  "/users",
+  authMiddleware,
+  rolesAuth(roles.ADMIN),
+  controllersUser.getallusers,
+);
 
 // Get a single user
 app.get("/users/me", authMiddleware, getme, controllersUser.getuser);
@@ -117,6 +131,7 @@ app.get("/Mycart", authMiddleware, cartController.getCart);
 // Order routes
 app.post("/orders", authMiddleware, controllerOrder.createOrder);
 app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
+app.get("/orders/all", authMiddleware, rolesAuth(roles.ADMIN),controllerOrder.allOrders);
 
 // Payment routes
 app.post(

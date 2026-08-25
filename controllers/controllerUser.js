@@ -9,12 +9,28 @@ const sendCode = require("../utils/sendCode");
 
 // get all users
 const getallusers = async (req, res) => {
-  const users = await Users.find({});
-  if (!users)
-    return res
-      .status(404)
-      .json({ status: httpresponser.FAIL, error: "No users found" });
-  res.status(200).json({ status: httpresponser.SUCCESS, data: users });
+  try {
+    const users = await Users.find({}).select("-password -password ");
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        status: httpresponser.FAIL,
+        error: "No users found",
+      });
+    }
+
+    res.status(200).json({
+      status: httpresponser.SUCCESS,
+      data: users,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      status: httpresponser.FAIL,
+      error: "Internal server error",
+    });
+  }
 };
 
 // ------------------------------------------------------------------------------------------------------
@@ -48,10 +64,10 @@ const login = async (req, res) => {
   });
 
   res.cookie("token", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-});
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
 
   res.cookie("user", {
     email: user.email,
@@ -81,9 +97,17 @@ const login = async (req, res) => {
 const register = async (req, res) => {
   console.log(req.body);
   try {
-    const { firstname, lastname, email, password , phoneNumber, dateOfBirth } = req.body;
+    const { firstname, lastname, email, password, phoneNumber, dateOfBirth } =
+      req.body;
 
-    if (!firstname || !lastname || !email || !password || !phoneNumber || !dateOfBirth) {
+    if (
+      !firstname ||
+      !lastname ||
+      !email ||
+      !password ||
+      !phoneNumber ||
+      !dateOfBirth
+    ) {
       return res
         .status(400)
         .json({ status: httpresponser.FAIL, error: "All fields are required" });
@@ -290,7 +314,7 @@ const updateUser = async (req, res) => {
           phone,
         },
       },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
