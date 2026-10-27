@@ -17,6 +17,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  brand: {
+    type: String,
+    default: "",
+  },
+  id: {
+    type: Number,
+  },
   thumbnail: {
     type: String,
     default: "",
@@ -24,6 +31,42 @@ const productSchema = new mongoose.Schema({
   images: {
     type: [String],
     default: [],
+  },
+  discountPercentage: Number,
+  rating: Number,
+  stock: Number,
+  tags: [String],
+  sku: String,
+  weight: Number,
+
+  dimensions: {
+    width: Number,
+    height: Number,
+    depth: Number,
+  },
+
+  warrantyInformation: String,
+  shippingInformation: String,
+  availabilityStatus: String,
+
+  reviews: [
+    {
+      rating: Number,
+      comment: String,
+      date: Date,
+      reviewerName: String,
+      reviewerEmail: String,
+    },
+  ],
+
+  returnPolicy: String,
+  minimumOrderQuantity: Number,
+
+  meta: {
+    createdAt: Date,
+    updatedAt: Date,
+    barcode: String,
+    qrCode: String,
   },
 });
 

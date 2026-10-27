@@ -23,7 +23,8 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 // app.all("*", (req, res, next) => {
 //   return res.status(404).send("Not Found");
@@ -67,13 +68,15 @@ app.post(
   "/products/add",
   authMiddleware,
   rolesAuth(roles.ADMIN),
-  controllersProdect.addproduct,
+  controllersProdect.addProduct,
 );
 
 // search product
 // app.get("/products/search",controllersProdect.getSearchProducts)
 
 // update a product
+app.put("/products/:id", authMiddleware, rolesAuth(roles.ADMIN), controllersProdect.updateproduct);
+app.patch("/products/:id", authMiddleware, rolesAuth(roles.ADMIN), controllersProdect.updateproduct);
 app.patch(
   "/products/update/:id",
   authMiddleware,
@@ -86,7 +89,7 @@ app.delete(
   "/products/delete/:id",
   authMiddleware,
   rolesAuth(roles.ADMIN),
-  controllersProdect.deleteproduct,
+  controllersProdect.deleteProduct,
 );
 
 // User routes
@@ -115,6 +118,7 @@ app.post("/users/reset-password", controllersUser.resetPassword);
 app.post("/users/verify-reset-code", controllersUser.verifyResetCode);
 // Update user
 app.patch("/users/update", authMiddleware, controllersUser.updateUser);
+app.patch("/users/update/:id", authMiddleware, controllersUser.updateUser);
 // Delete user
 app.delete(
   "/users/delete/:id",
@@ -132,6 +136,7 @@ app.get("/Mycart", authMiddleware, cartController.getCart);
 app.post("/orders", authMiddleware, controllerOrder.createOrder);
 app.get("/orders/me", authMiddleware, controllerOrder.getMyOrders);
 app.get("/orders/all", authMiddleware, rolesAuth(roles.ADMIN),controllerOrder.allOrders);
+app.patch("/orders/:id", authMiddleware, controllerOrder.updateOrder);
 
 // Payment routes
 app.post(

@@ -80,8 +80,9 @@ const getCart = async (req, res) => {
 
     let totalPrice = 0;
 
+    cart.items = cart.items.filter((item) => item.product != null);
     cart.items.forEach((item) => {
-      totalPrice += item.product.price * item.quantity;
+      totalPrice += (item.product?.price || 0) * (item.quantity || 1);
     });
 
     res.status(200).json({

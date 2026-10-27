@@ -294,7 +294,8 @@ const logout = (req, res) => {
 // update user
 const updateUser = async (req, res) => {
   try {
-    const id = req.user.id;
+    const mongoose = require("mongoose");
+    const id = req.params.id || req.user.id;
 
     if (!id) {
       return res.status(400).json({
@@ -302,20 +303,29 @@ const updateUser = async (req, res) => {
       });
     }
 
-    const { firstname, lastname, email, phone } = req.body;
+    const { fristname, firstname, lastname, email, phoneNumber, phone, dateOfBirth, gender } = req.body;
+    const updateData = {};
+    if (fristname || firstname) updateData.fristname = fristname || firstname;
+    if (lastname) updateData.lastname = lastname;
+    if (email) updateData.email = email;
+    if (phoneNumber || phone) updateData.phoneNumber = phoneNumber || phone;
+    if (dateOfBirth) updateData.dateOfBirth = dateOfBirth;
+    if (gender) updateData.gender = gender;
 
-    const user = await Users.findOneAndUpdate(
-      { id },
-      {
-        $set: {
-          firstname,
-          lastname,
-          email,
-          phone,
-        },
-      },
-      { new: true },
-    );
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      user = await Users.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      ).select("-password");
+    } else {
+      user = await Users.findOneAndUpdate(
+        { id },
+        { $set: updateData },
+        { new: true }
+      ).select("-password");
+    }
 
     if (!user) {
       return res.status(404).json({
@@ -324,24 +334,35 @@ const updateUser = async (req, res) => {
     }
 
     return res.status(200).json({
+      status: httpresponser.SUCCESS,
       message: "User updated successfully",
+      data: user,
       user,
     });
   } catch (error) {
     console.error(error);
-
     return res.status(500).json({
       error: "Internal server error",
     });
   }
 };
+
 // delete user
 const deleteuser = async (req, res) => {
-  const id = +req.params.id;
-  const user = await Users.findOne({ id: id });
-  if (!user) return res.status(404).json({ error: "User not found" });
-  await Users.deleteOne({ id: id });
-  res.status(200).json({ message: "User deleted successfully" });
+  try {
+    const mongoose = require("mongoose");
+    const paramId = req.params.id;
+    let user = null;
+    if (mongoose.Types.ObjectId.isValid(paramId)) {
+      user = await Users.findByIdAndDelete(paramId);
+    } else if (!isNaN(+paramId)) {
+      user = await Users.findOneAndDelete({ id: +paramId });
+    }
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.status(200).json({ status: "success", message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = {

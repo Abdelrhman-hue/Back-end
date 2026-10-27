@@ -27,11 +27,13 @@ const createOrder = async (req, res) => {
       totalPrice += item.product.price * item.quantity;
     }
 
+    const { shippingAddress, paymentMethod } = req.body;
     const order = await Order.create({
+      shippingAddress: shippingAddress || {},
       user: req.user.id,
       items: orderItems,
       totalPrice,
-      paymentMethod: "stripe",
+      paymentMethod: paymentMethod || "stripe",
     });
 
     const populatedOrder = await Order.findById(order._id)
@@ -78,7 +80,27 @@ const allOrders = async (req, res) => {
   });
 };
 
+const updateOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, paymentStatus, shippingAddress, paymentMethod, isPaid } = req.body;
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (shippingAddress) updateData.shippingAddress = shippingAddress;
+    if (paymentMethod) updateData.paymentMethod = paymentMethod;
+    if (typeof isPaid === "boolean") updateData.isPaid = isPaid;
+
+    const order = await Order.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    res.status(200).json({ status: "success", data: order });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
+  updateOrder,
   createOrder,
   getMyOrders,
   allOrders,

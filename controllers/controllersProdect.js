@@ -106,19 +106,90 @@ const getallproducts = async (req, res) => {
   }
 };
 const getproductsingle = async (req, res) => {
-  const id = +req.params.id;
-  const product = await productSchema.findOne({ id: id });
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  res.status(200).json(product);
+  try {
+    const mongoose = require("mongoose");
+    const paramId = req.params.id;
+    let product = null;
+    if (mongoose.Types.ObjectId.isValid(paramId)) {
+      product = await productSchema.findById(paramId);
+    }
+    if (!product && !isNaN(+paramId)) {
+      product = await productSchema.findOne({ id: +paramId });
+    }
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const addproduct = async (req, res) => {
-  const newProduct = new productSchema(req.body);
-  await newProduct.save();
-  console.log(newProduct);
-  res.status(201).json(newProduct);
-};
+const addProduct = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      category,
+      price,
+      discountPercentage,
+      rating,
+      stock,
+      tags,
+      sku,
+      weight,
+      dimensions,
+      warrantyInformation,
+      shippingInformation,
+      availabilityStatus,
+      reviews,
+      returnPolicy,
+      minimumOrderQuantity,
+      meta,
+      images,
+      thumbnail,
+    } = req.body;
 
+    if (!title || !category || price == null) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Title, category and price are required",
+      });
+    }
+
+    const product = await productSchema.create({
+      title,
+      description,
+      category,
+      price,
+      discountPercentage,
+      rating,
+      stock,
+      tags,
+      sku,
+      weight,
+      dimensions,
+      warrantyInformation,
+      shippingInformation,
+      availabilityStatus,
+      reviews,
+      returnPolicy,
+      minimumOrderQuantity,
+      meta,
+      images,
+      thumbnail,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Product created successfully",
+      data: product,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
 // const getSearchProducts = async (req, res) => {
 //   try {
 //     const { q } = req.query;
@@ -163,26 +234,55 @@ const addproduct = async (req, res) => {
 // };
 
 const updateproduct = async (req, res) => {
-  const id = +req.params.id;
-  const product = await productSchema.findOne({ id: id });
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  await productSchema.updateOne({ id: id }, { $set: { ...req.body } });
-  res.status(200).json({ message: "Product updated successfully" });
+  try {
+    const mongoose = require("mongoose");
+    const paramId = req.params.id;
+    let product = null;
+    if (mongoose.Types.ObjectId.isValid(paramId)) {
+      product = await productSchema.findByIdAndUpdate(paramId, { $set: req.body }, { new: true });
+    } else if (!isNaN(+paramId)) {
+      product = await productSchema.findOneAndUpdate({ id: +paramId }, { $set: req.body }, { new: true });
+    }
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json({ message: "Product updated successfully", product });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const deleteproduct = async (req, res) => {
-  const id = +req.params.id;
-  const product = await productSchema.findOne({ _id: id });
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  await productSchema.deleteOne({ _id: id });
-  res.status(200).json({ message: "Product deleted successfully" });
+const deleteProduct = async (req, res) => {
+  try {
+    const mongoose = require("mongoose");
+    const { id } = req.params;
+    let product = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await productSchema.findByIdAndDelete(id);
+    } else if (!isNaN(+id)) {
+      product = await productSchema.findOneAndDelete({ id: +id });
+    }
+    if (!product) {
+      return res.status(404).json({
+        status: "fail",
+        error: "Product not found",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message,
+    });
+  }
 };
 
 module.exports = {
   getallproducts,
   getproductsingle,
-  addproduct,
+  addProduct,
   updateproduct,
-  deleteproduct,
+  deleteProduct,
   // getSearchProducts,
 };

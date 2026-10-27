@@ -27,10 +27,10 @@ const createCheckoutSession = async (req, res) => {
           currency: "usd",
 
           product_data: {
-            name: item.product.title,
+            name: item.product?.title || "Product",
           },
 
-          unit_amount: item.price * 100,
+          unit_amount: Math.round((item.price || 0) * 100),
         },
 
         quantity: item.quantity,
